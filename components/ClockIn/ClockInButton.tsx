@@ -96,8 +96,6 @@ const ClockInButton: React.FC<ClockInButtonProps> = ({
       );
       setError(true);
       return;
-    } finally {
-      setLoading(false);
     }
   };
 
