@@ -23,21 +23,45 @@ const ClockInButton: React.FC<ClockInButtonProps> = ({
   const router = useRouter();
 
   /**
-   * 生成半自然的打卡精度 (无小数点)
-   * 85% 的概率生成 10 的倍数，15% 的概率生成 10~100 之间的任意整数
+   * 生成半自然的打卡精度
+   * 50% 的概率生成 10 的倍数 (20,30)，50% 的概率生成 10~40 之间的任意整数
    */
+
+  const generateAccurateFloat = () => {
+    const float = Math.random() * 40 + 10;
+    const fixedStr = float.toFixed(15); // 字符串，确保 15 位
+    const parsed = parseFloat(fixedStr); // 可能会丢失尾部 0
+
+    const parsedStr = parsed.toString();
+    const decimal = parsedStr.split(".")[1] || "";
+
+    // 检查当前小数位数
+    if (decimal.length < 15) {
+      const missingCount = 15 - decimal.length;
+
+      // 随机生成非零数字序列来补尾
+      const nonZeroDigits = Array.from(
+        { length: missingCount },
+        () => Math.floor(Math.random() * 9) + 1 // 1~9，不含0
+      ).join("");
+
+      const paddedStr = parsedStr.includes(".")
+        ? parsedStr + nonZeroDigits
+        : parsedStr + "." + nonZeroDigits;
+
+      return parseFloat(paddedStr);
+    }
+
+    return parsed;
+  };
+
   const generateSemiNaturalAccuracy = () => {
-    const useMultipleOf10 = Math.random() < 0.85; // 85% 生成 10 的倍数
-    if (useMultipleOf10) {
-      const multiplesOf10 = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
+    const useInteger = Math.random() < 0.5; // 50% 几率为整数，50% 为 15 位小数
+    if (useInteger) {
+      const multiplesOf10 = [20, 30];
       return multiplesOf10[Math.floor(Math.random() * multiplesOf10.length)];
     } else {
-      // 生成 10~100 之间的任意整数，避免重复出现整十
-      let value;
-      do {
-        value = Math.floor(Math.random() * 91) + 10;
-      } while (value % 10 === 0);
-      return value;
+      return generateAccurateFloat();
     }
   };
 
@@ -76,6 +100,7 @@ const ClockInButton: React.FC<ClockInButtonProps> = ({
       setLoading(false);
     }
   };
+
   if (!show) return <></>;
 
   return (
