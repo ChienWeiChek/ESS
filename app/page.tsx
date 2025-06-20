@@ -3,7 +3,13 @@ import getLeave from "@/action/getLeave";
 import MonthSelector from "@/components/MonthSelector";
 import MonthlySummaryWrapper from "@/components/MonthlySummary";
 import CalendarWrapper from "@/components/Calender";
-import { endOfMonth, endOfWeek, parseDate } from "@/util/helper";
+import {
+  endOfMonth,
+  endOfWeek,
+  parseDate,
+  startOfMonth,
+  startOfWeek,
+} from "@/util/helper";
 import { REPLACEMENT_HOURS } from "@/util/constants";
 import getUserInfo from "@/action/gerUserInfo";
 import ClockIn from "@/components/ClockIn";
@@ -26,16 +32,14 @@ export default async function Report({
   const year = new Date().getFullYear();
   const currentMonth = new Date().getMonth() + 1;
   const startDate = new Date(year, month - 1, 1);
-
-  const calendarStart = new Date(year, month - 2, 20); // Previous month 20th
+  const startMonth = startOfMonth(startDate);
+  const calendarStart = startOfWeek(startMonth);
+  const endMonth = endOfMonth(startDate);
   const calendarEnd = endOfWeek(endOfMonth(startDate));
   const { timeSheets, holidays: holidaysData } = await getAttendance(
     calendarStart.toISOString().split("T")[0],
     calendarEnd.toISOString().split("T")[0]
   );
-
-  const periodStart = new Date(year, month - 2, 21); // previous month 21st
-  const periodEnd = new Date(year, month - 1, 20);
 
   const leave = await getLeave(
     calendarStart.toISOString().split("T")[0],
@@ -46,8 +50,8 @@ export default async function Report({
     .filter(
       (l) =>
         l.leaveType === REPLACEMENT_HOURS &&
-        parseDate(l.startDate) >= periodStart &&
-        parseDate(l.endDate) <= periodEnd
+        parseDate(l.startDate) >= startMonth &&
+        parseDate(l.endDate) <= endMonth
     )
     .reduce((total, l) => total + l.hourApplied, 0);
 
@@ -64,7 +68,7 @@ export default async function Report({
         startDate={startDate}
       />
       {currentMonth === month ? (
-        <ClockIn id={userInfo.id} timeSheets={timeSheets}/>
+        <ClockIn id={userInfo.id} timeSheets={timeSheets} />
       ) : (
         <></>
       )}

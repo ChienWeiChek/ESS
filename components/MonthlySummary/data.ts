@@ -1,5 +1,5 @@
 import { MINUTES_8_HOURS, LUNCH_BREAK_MINUTES } from "@/util/constants";
-import { parseDate } from "@/util/helper";
+import { endOfMonth, parseDate, startOfMonth } from "@/util/helper";
 
 const getData = (
   timeSheets: AttendanceDay[],
@@ -13,8 +13,12 @@ const getData = (
   let totalMinutesInPeriod = replacementLeaveHours * 60; // Convert hours to minutes
   let workDaysInPeriod = 0;
 
-  const periodStart = new Date(year, month - 2, 21); // previous month 21st
-  const periodEnd = new Date(year, month - 1, 20); // current month 20th
+  const startDate = new Date(year, month - 1, 1);
+  const startMonth = startOfMonth(startDate);
+  const endMonth = endOfMonth(startDate);
+
+  const periodStart = startMonth;
+  const periodEnd = endMonth;
   periodStart.setHours(0, 0, 0, 0);
   periodEnd.setHours(23, 59, 59, 999);
 
@@ -73,7 +77,7 @@ const getData = (
     expectedClockOut,
     workHoursLeft,
     normalClockOut,
-    lastAttendance
+    lastAttendance,
   };
 };
 
